@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Break → CSV (Whatnot + Fanatics Live)",
+  "version": "1.2.0",
+  "description": "Capture break spot data from Whatnot and Fanatics Live and export to CSV.",
+  "permissions": ["downloads", "storage", "activeTab"],
+  "host_permissions": [
+    "https://www.whatnot.com/*",
+    "https://www.fanatics.live/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Whatnot Break → CSV",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.whatnot.com/*", "https://www.fanatics.live/*"],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["inject.js"],
+      "matches": ["https://www.whatnot.com/*", "https://www.fanatics.live/*"]
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Whatnot → CSV</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; width: 520px; background: #0d1117; color: #c9d1d9; }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+    }
+    .header-title { font-size: 13px; font-weight: 600; color: #f0f6fc; }
+    .header-sub { font-size: 10px; color: #8b949e; margin-top: 1px; }
+
+    /* Summary */
+    .summary-grid {
+      display: grid;
+      gap: 1px;
+      background: #30363d;
+      border-bottom: 1px solid #30363d;
+    }
+    .summary-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .summary-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+    .summary-cell {
+      background: #161b22;
+      padding: 8px 14px;
+      text-align: center;
+    }
+    .summary-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #8b949e; margin-bottom: 4px; }
+    .summary-value { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .summary-value.green { color: #3fb950; }
+    .summary-value.amber { color: #f5a623; }
+    .summary-value.blue  { color: #58a6ff; }
+    .summary-value.purple { color: #bc8cff; }
+
+    /* Section labels */
+    .section-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #8b949e;
+      padding: 6px 14px 0;
+      font-weight: 600;
+    }
+
+    /* Buttons */
+    .actions {
+      display: flex;
+      gap: 8px;
+      padding: 8px 14px;
+      border-bottom: 1px solid #30363d;
+      background: #0d1117;
+    }
+    .btn {
+      flex: 1;
+      padding: 7px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: all 0.15s;
+    }
+    .btn-primary   { background: rgba(245,166,35,0.12);  border: 1px solid rgba(245,166,35,0.3);  color: #f5a623; }
+    .btn-primary:hover   { background: rgba(245,166,35,0.2); }
+    .btn-purple    { background: rgba(188,140,255,0.10);  border: 1px solid rgba(188,140,255,0.28); color: #bc8cff; }
+    .btn-purple:hover    { background: rgba(188,140,255,0.18); }
+    .btn-danger    { background: rgba(248,81,73,0.1);    border: 1px solid rgba(248,81,73,0.25);  color: #f85149; }
+    .btn-danger:hover    { background: rgba(248,81,73,0.18); }
+
+    /* Status */
+    .status-line { font-size: 10px; color: #8b949e; padding: 3px 14px 5px; min-height: 18px; }
+
+    /* Divider */
+    .section-divider { border: none; border-top: 2px solid #21262d; margin: 0; }
+
+    /* Table */
+    .table-wrap { max-height: 190px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th { padding: 6px 10px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: #8b949e; text-align: left; border-bottom: 1px solid #21262d; font-weight: 400; background: #161b22; position: sticky; top: 0; }
+    td { padding: 6px 10px; border-bottom: 1px solid #21262d; vertical-align: middle; color: #c9d1d9; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.03); }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .badge { display: inline-block; padding: 1px 6px; font-size: 9px; border-radius: 20px; font-weight: 500; }
+    .badge-sold  { background: rgba(63,185,80,0.15);   color: #3fb950; }
+    .badge-avail { background: rgba(88,166,255,0.12);  color: #58a6ff; }
+    .badge-plat-whatnot  { background: rgba(245,166,35,0.12); color: #f5a623; margin-right:4px; }
+    .badge-plat-fanatics { background: rgba(88,166,255,0.12); color: #58a6ff; margin-right:4px; }
+    .price-orig { text-decoration: line-through; color: #8b949e; margin-right: 4px; font-size: 10px; }
+    .price-free { color: #3fb950; }
+
+    /* Scrollbar */
+    .table-wrap::-webkit-scrollbar { width: 3px; }
+    .table-wrap::-webkit-scrollbar-track { background: #0d1117; }
+    .table-wrap::-webkit-scrollbar-thumb { background: #30363d; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">Break → CSV</div>
+    <div class="header-sub">v1.2 · Whatnot &amp; Fanatics Live</div>
+  </div>
+</div>
+
+<!-- ── BREAKS ── -->
+<div class="section-label" style="padding-top:8px">Breaks</div>
+
+<div class="summary-grid cols-3">
+  <div class="summary-cell">
+    <div class="summary-label">Sold</div>
+    <div class="summary-value green" id="s-sold">—</div>
+  </div>
+  <div class="summary-cell">
+    <div class="summary-label">Available</div>
+    <div class="summary-value amber" id="s-left">—</div>
+  </div>
+  <div class="summary-cell">
+    <div class="summary-label">Spots</div>
+    <div class="summary-value blue" id="s-spots">—</div>
+  </div>
+</div>
+
+<div class="actions">
+  <button class="btn btn-primary" id="exportBreakBtn">↓ Export Breaks</button>
+  <button class="btn btn-danger" id="clearBreakBtn">✕ Clear</button>
+</div>
+
+<div class="status-line" id="status-breaks">Waiting for data...</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Spot</th>
+        <th>Price</th>
+        <th>Status</th>
+        <th>Buyer</th>
+      </tr>
+    </thead>
+    <tbody id="tbody-breaks"></tbody>
+  </table>
+</div>
+
+<hr class="section-divider"/>
+
+<!-- ── SOLD ITEMS ── -->
+<div class="section-label" style="padding-top:8px">Sold Items</div>
+
+<div class="summary-grid cols-2">
+  <div class="summary-cell">
+    <div class="summary-label">Items</div>
+    <div class="summary-value blue" id="si-count">—</div>
+  </div>
+  <div class="summary-cell">
+    <div class="summary-label">Total</div>
+    <div class="summary-value purple" id="si-total">—</div>
+  </div>
+</div>
+
+<div class="actions">
+  <button class="btn btn-purple" id="exportSoldBtn">↓ Export Sold</button>
+  <button class="btn btn-danger" id="clearSoldBtn">✕ Clear</button>
+</div>
+
+<div class="status-line" id="status-sold">Scroll the Sold tab on the stream to capture items.</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th class="num">Unit $</th>
+        <th>Qty</th>
+        <th>Buyer</th>
+      </tr>
+    </thead>
+    <tbody id="tbody-sold"></tbody>
+  </table>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
