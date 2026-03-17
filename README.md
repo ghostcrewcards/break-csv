@@ -117,6 +117,6 @@ No — it captures live GraphQL traffic, so it only works on active streams.
 
 ## Support
 
-If this extension saves you time, a coffee is always appreciated!
+If you enjoy the extension or it saves you money on breaks, a coffee is always appreciated!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/ghostcrewcards)
