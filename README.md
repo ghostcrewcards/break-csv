@@ -2,6 +2,8 @@
 
 A free Chrome extension to capture break spot data, tally the full break cost (sold + available), and export to CSV — no accounts, no servers, no data leaves your browser. Works on both **Whatnot** and **Fanatics Live**.
 
+![Break → CSV promo](promo-large-920x680.png)
+
 ---
 
 ## Supported Platforms
