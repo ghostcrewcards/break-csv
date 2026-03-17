@@ -1,6 +1,6 @@
 # Break → CSV (Whatnot + Fanatics Live)
 
-A free Chrome extension to capture break spot data and export to CSV — no accounts, no servers, no data leaves your browser. Works on both **Whatnot** and **Fanatics Live**.
+A free Chrome extension to capture break spot data, tally the full break cost (sold + available), and export to CSV — no accounts, no servers, no data leaves your browser. Works on both **Whatnot** and **Fanatics Live**.
 
 ---
 
