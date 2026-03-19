@@ -119,6 +119,64 @@ function loadData() {
   });
 }
 
+// ── Share to ChatGPT ──
+document.getElementById("gptBreakBtn").addEventListener("click", () => {
+  chrome.storage.local.get(["whatnotRows", "lastBreak"], res => {
+    const rows = res.whatnotRows || [];
+    if (!rows.length) return alert("No break data to share.");
+
+    let soldVal = 0, availVal = 0;
+    for (const r of rows) {
+      if (r.buyer) soldVal += r.priceCents || 0;
+      else availVal += r.priceCents || 0;
+    }
+    const totalVal = soldVal + availVal;
+    const soldCount = rows.filter(r => r.buyer).length;
+    const platform = rows[0]?.platform === "fanatics" ? "Fanatics Live" : "Whatnot";
+    const breakTitle = rows[0]?.breakTitle || "Unknown Break";
+    const currency = rows[0]?.currency || "USD";
+
+    const fmt = c => c != null ? "$" + (c / 100).toFixed(2) : "—";
+
+    const header = [
+      `I have break spot data from ${platform} that I'd like your help analyzing.`,
+      ``,
+      `Break: ${breakTitle}`,
+      `Platform: ${platform}`,
+      `Total spots: ${rows.length} | Sold: ${soldCount} | Available: ${rows.length - soldCount}`,
+      `Sold value: ${fmt(soldVal)} | Available value: ${fmt(availVal)} | Total: ${fmt(totalVal)}`,
+      `Currency: ${currency}`,
+      ``,
+      `Spot list:`,
+      `Spot | Price | Status | Buyer`,
+      `-----|-------|--------|------`,
+    ];
+
+    const spotLines = rows.map(r => {
+      const price = r.isGiveaway ? "FREE" : (r.priceDisplay || fmt(r.priceCents));
+      const status = r.isSold ? "Sold" : "Available";
+      const buyer = r.buyer || "—";
+      return `${r.spotTitle} | ${price} | ${status} | ${buyer}`;
+    });
+
+    const footer = [
+      ``,
+      `Please provide a summary and any insights — sell-through rate, revenue breakdown, notable spots, etc.`,
+    ];
+
+    const prompt = [...header, ...spotLines, ...footer].join("\n");
+
+    navigator.clipboard.writeText(prompt).then(() => {
+      chrome.tabs.create({ url: "https://chatgpt.com/" });
+      const status = document.getElementById("status-breaks");
+      const prev = status.textContent;
+      status.textContent = "✓ Copied to clipboard — paste into ChatGPT";
+      status.style.color = "#10a37f";
+      setTimeout(() => { status.textContent = prev; status.style.color = ""; }, 3000);
+    }).catch(() => alert("Clipboard access denied. Try again."));
+  });
+});
+
 // ── Export breaks ──
 document.getElementById("exportBreakBtn").addEventListener("click", () => {
   chrome.storage.local.get(["whatnotRows", "lastBreak"], res => {
