@@ -48,6 +48,8 @@ Click the extension icon to open the popup. You'll see two sections:
 
 Each section has its own **Export** and **Clear** button. Exporting clears that section so you're ready for the next break.
 
+**⬆ Ask ChatGPT** — formats the full break into a structured prompt (spot list, prices, sold/available totals, buyer names) and copies it to your clipboard, then opens ChatGPT in a new tab. Just paste and hit send. Great for getting a quick sell-through analysis, revenue summary, or any other breakdown without manually typing anything out.
+
 ---
 
 ## CSV Export
