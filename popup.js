@@ -117,11 +117,61 @@ function renderSold(items) {
   status.textContent = `${items.length} items · ${money(total)} total${pending ? ` · ${pending} pending` : ""}`;
 }
 
+// ── Render detected shows ──
+function renderShows(detectedShows, trackedShows) {
+  const list = document.getElementById("show-list");
+  const detected = Object.values(detectedShows || {});
+  const tracked  = new Set(trackedShows || []);
+
+  if (!detected.length) {
+    list.innerHTML = '<div class="show-empty">Navigate to Whatnot to detect shows.</div>';
+    return;
+  }
+
+  // Sort: tracked first, then most recently detected
+  detected.sort((a, b) => {
+    if (tracked.has(a.liveId) !== tracked.has(b.liveId))
+      return tracked.has(a.liveId) ? -1 : 1;
+    return (b.detectedAt || 0) - (a.detectedAt || 0);
+  });
+
+  list.innerHTML = "";
+  for (const show of detected) {
+    const isTracked = tracked.has(show.liveId);
+
+    const row = document.createElement("div");
+    row.className = "show-row";
+
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = isTracked;
+    cb.addEventListener("change", () => toggleTrackShow(show.liveId, cb.checked));
+
+    const lbl = document.createElement("span");
+    lbl.className = "show-label" + (isTracked ? " tracked" : "");
+    lbl.title = show.url || show.liveId;
+    lbl.textContent = show.label || show.liveId;
+
+    row.append(cb, lbl);
+    list.appendChild(row);
+  }
+}
+
+function toggleTrackShow(liveId, track) {
+  chrome.storage.local.get(["trackedShows"], res => {
+    let tracked = res.trackedShows || [];
+    if (track) { if (!tracked.includes(liveId)) tracked.push(liveId); }
+    else tracked = tracked.filter(id => id !== liveId);
+    chrome.storage.local.set({ trackedShows: tracked }, loadData);
+  });
+}
+
 // ── Load all data ──
 function loadData() {
-  chrome.storage.local.get(["whatnotRows", "whatnotSoldItems"], res => {
+  chrome.storage.local.get(["whatnotRows", "whatnotSoldItems", "detectedShows", "trackedShows"], res => {
     renderBreaks(res.whatnotRows || []);
     renderSold(res.whatnotSoldItems || []);
+    renderShows(res.detectedShows, res.trackedShows);
   });
 }
 
@@ -250,6 +300,12 @@ document.getElementById("clearBreakBtn").addEventListener("click", () => {
 // ── Clear sold items ──
 document.getElementById("clearSoldBtn").addEventListener("click", () => {
   chrome.storage.local.set({ whatnotSoldItems: [] });
+  loadData();
+});
+
+// ── Clear detected shows ──
+document.getElementById("clearShowsBtn").addEventListener("click", () => {
+  chrome.storage.local.set({ detectedShows: {}, trackedShows: [], perShowSold: {} });
   loadData();
 });
 
