@@ -11,12 +11,13 @@ function renderBreaks(rows) {
     document.getElementById("s-sold").textContent = "—";
     document.getElementById("s-left").textContent = "—";
     document.getElementById("s-spots").textContent = "—";
+    document.getElementById("s-pct").textContent = "—";
     return;
   }
 
-  let sold = 0, left = 0;
+  let sold = 0, left = 0, soldCount = 0;
   for (const r of rows) {
-    if (r.buyer) sold += r.priceCents || 0;
+    if (r.buyer) { sold += r.priceCents || 0; soldCount++; }
     else left += r.priceCents || 0;
 
     const tr = document.createElement("tr");
@@ -61,10 +62,12 @@ function renderBreaks(rows) {
     tbody.appendChild(tr);
   }
 
+  const pct = Math.round(soldCount / rows.length * 100);
   document.getElementById("s-sold").textContent = money(sold);
   document.getElementById("s-left").textContent = money(left);
   document.getElementById("s-spots").textContent = rows.length;
-  status.textContent = `${rows.length} spots · ${rows.filter(r => r.buyer).length} sold`;
+  document.getElementById("s-pct").textContent = pct + "%";
+  status.textContent = `${rows.length} spots · ${soldCount} sold · ${pct}% sell-through`;
 }
 
 // ── Render sold items ──
@@ -74,14 +77,16 @@ function renderSold(items) {
   tbody.innerHTML = "";
 
   if (!items?.length) {
-    status.textContent = "Scroll the Sold tab on the stream to capture items.";
+    status.textContent = "Sold items are fetched automatically on Whatnot live pages.";
     document.getElementById("si-count").textContent = "—";
+    document.getElementById("si-pending").textContent = "—";
     document.getElementById("si-total").textContent = "—";
     return;
   }
 
-  let total = 0;
+  let total = 0, pending = 0;
   for (const item of items) {
+    if (item.pendingPayment) pending++;
     total += item.totalCents || item.priceCents || 0;
 
     const tr = document.createElement("tr");
@@ -107,8 +112,9 @@ function renderSold(items) {
   }
 
   document.getElementById("si-count").textContent = items.length;
+  document.getElementById("si-pending").textContent = pending;
   document.getElementById("si-total").textContent = money(total);
-  status.textContent = `${items.length} items · ${money(total)} total`;
+  status.textContent = `${items.length} items · ${money(total)} total${pending ? ` · ${pending} pending` : ""}`;
 }
 
 // ── Load all data ──
@@ -138,12 +144,13 @@ document.getElementById("gptBreakBtn").addEventListener("click", () => {
 
     const fmt = c => c != null ? "$" + (c / 100).toFixed(2) : "—";
 
+    const gptPct = Math.round(soldCount / rows.length * 100);
     const header = [
       `I have break spot data from ${platform} that I'd like your help analyzing.`,
       ``,
       `Break: ${breakTitle}`,
       `Platform: ${platform}`,
-      `Total spots: ${rows.length} | Sold: ${soldCount} | Available: ${rows.length - soldCount}`,
+      `Total spots: ${rows.length} | Sold: ${soldCount} | Available: ${rows.length - soldCount} | Sell-through: ${gptPct}%`,
       `Sold value: ${fmt(soldVal)} | Available value: ${fmt(availVal)} | Total: ${fmt(totalVal)}`,
       `Currency: ${currency}`,
       ``,

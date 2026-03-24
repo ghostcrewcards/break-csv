@@ -43,8 +43,9 @@ Click the extension icon to open the popup. You'll see two sections:
 - Price (with strikethrough original price when discounted; "FREE" for giveaway spots)
 - Status (Sold / Available)
 - Buyer username
+- Summary chips: Sold value · Available value · Total spots · **Sell-through %**
 
-**Sold Items** *(Whatnot only)* — shows individual sold items from the Sold tab with unit price, quantity, and buyer.
+**Sold Items** *(Whatnot only)* — sold items are fetched automatically in the background every 45 seconds on Whatnot live pages — no need to scroll the Sold tab manually. Shows unit price, quantity, buyer, and a **Pending Payments** count for unpaid orders.
 
 Each section has its own **Export** and **Clear** button. Exporting clears that section so you're ready for the next break.
 
@@ -96,7 +97,7 @@ On Whatnot, make sure you've clicked "Buy Spots" to open the break panel and scr
 Scroll through the full list in the break panel (Whatnot) to load all spots. The extension captures data as it appears in the page.
 
 **The sold items section is empty.**
-The Sold Items section is Whatnot-only. Click the Sold tab on the Whatnot stream and scroll through it — that's what loads the data.
+On Whatnot live pages, sold items are fetched automatically every 45 seconds — just leave the extension running and they'll appear. If you just opened the stream, wait a few seconds for the first poll to complete.
 
 **Does it work for all break types?**
 Yes — Random, Pick Your, and Standard breaks are all supported on Whatnot. All break types on Fanatics Live are supported.
@@ -107,6 +108,12 @@ No — it captures live GraphQL traffic, so it only works on active streams.
 ---
 
 ## Changelog
+
+**v1.3.0**
+- Sell-through % chip added to break summary
+- Sold items now auto-fetched every 45 seconds on Whatnot live pages (no manual scrolling needed)
+- Pending payments count added to sold items summary
+- Ask ChatGPT prompt now includes sell-through rate
 
 **v1.2.0**
 - Added Fanatics Live support

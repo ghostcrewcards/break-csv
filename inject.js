@@ -283,7 +283,8 @@
                 currency,
                 quantity: qty,
                 buyer,
-                transactionType: listing.transactionType || null
+                transactionType: listing.transactionType || null,
+              pendingPayment: listing.pendingPayment || false
               };
             }).filter(i => i.soldItemId);
             if (items.length) {
@@ -300,6 +301,91 @@
     } catch (_) {}
     return res;
   };
+
+  // === Auto-poll: sold items on Whatnot live pages ===
+  // Fetches all sold items via paginated GraphQL so the user doesn't need
+  // to manually scroll the Sold tab. Runs every 45 seconds while on a live page.
+  function getLiveIdFromUrl() {
+    const m = location.pathname.match(/\/live\/([^/?#]+)/i);
+    return m ? m[1] : null;
+  }
+
+  let AUTO_POLL_TIMER = null;
+
+  async function pollSoldItems() {
+    const liveId = getLiveIdFromUrl();
+    if (!liveId) return;
+
+    try {
+      const allItems = [];
+      let after = null;
+
+      do {
+        const body = JSON.stringify({
+          operationName: "LiveShopSold",
+          variables: { liveId, first: 48, after, filters: null, sort: null, query: "" },
+          query: `query LiveShopSold($liveId:ID!,$filters:[FilterInput],$sort:ShopSortInput,$query:String,$first:Int,$after:String){liveShop(liveId:$liveId){soldItems(query:$query filters:$filters sort:$sort first:$first after:$after){pageInfo{hasNextPage endCursor}edges{node{id listing{title description transactionType pendingPayment price{amount currency}quantity}buyer{username}price{amount currency}}}}}}`,
+        });
+
+        const res = await _fetch("https://www.whatnot.com/services/graphql/?operationName=LiveShopSold&ssr=0", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json", "x-whatnot-app": "whatnot-web" },
+          body,
+        });
+
+        if (!res.ok) break;
+        const json = await res.json();
+        const soldData = json?.data?.liveShop?.soldItems;
+        if (!soldData) break;
+
+        for (const e of soldData.edges || []) {
+          const node = e?.node || {};
+          const listing = node.listing || {};
+          const totalCents = listing?.price?.amount ?? node?.price?.amount ?? 0;
+          const currency = listing?.price?.currency || "USD";
+          const buyer = node?.buyer?.username || null;
+          const qty = listing?.quantity || 1;
+          const priceCents = qty > 1 ? Math.round(totalCents / qty) : totalCents;
+          if (node.id) {
+            allItems.push({
+              soldItemId: node.id,
+              listingId: null,
+              title: listing.title || "",
+              description: listing.description || "",
+              priceCents,
+              totalCents,
+              currency,
+              quantity: qty,
+              buyer,
+              transactionType: listing.transactionType || null,
+              pendingPayment: listing.pendingPayment || false,
+            });
+          }
+        }
+
+        after = soldData.pageInfo?.hasNextPage ? soldData.pageInfo.endCursor : null;
+      } while (after);
+
+      if (allItems.length) {
+        log(`🔄 Auto-poll: ${allItems.length} sold items`);
+        window.postMessage({ type: "WHATNOT_SOLD_DATA", items: allItems, liveId }, "*");
+      }
+    } catch (err) {
+      log("auto-poll error", err);
+    }
+  }
+
+  function startAutoPoll() {
+    if (AUTO_POLL_TIMER) { clearInterval(AUTO_POLL_TIMER); AUTO_POLL_TIMER = null; }
+    if (!getLiveIdFromUrl()) return;
+    log("🔁 Starting auto-poll for sold items");
+    setTimeout(pollSoldItems, 3000);
+    AUTO_POLL_TIMER = setInterval(pollSoldItems, 45000);
+  }
+
+  startAutoPoll();
+  window.addEventListener("popstate", () => setTimeout(startAutoPoll, 1500));
 
   log("✅ Break CSV hooks installed (Whatnot + Fanatics Live, public edition)");
 })();

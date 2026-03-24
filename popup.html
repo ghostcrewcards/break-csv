@@ -25,6 +25,7 @@
       background: #30363d;
       border-bottom: 1px solid #30363d;
     }
+    .summary-grid.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
     .summary-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
     .summary-grid.cols-2 { grid-template-columns: 1fr 1fr; }
     .summary-cell {
@@ -111,14 +112,14 @@
 <div class="header">
   <div>
     <div class="header-title">Break → CSV</div>
-    <div class="header-sub">v1.2 · Whatnot &amp; Fanatics Live</div>
+    <div class="header-sub">v1.3 · Whatnot &amp; Fanatics Live</div>
   </div>
 </div>
 
 <!-- ── BREAKS ── -->
 <div class="section-label" style="padding-top:8px">Breaks</div>
 
-<div class="summary-grid cols-3">
+<div class="summary-grid cols-4">
   <div class="summary-cell">
     <div class="summary-label">Sold</div>
     <div class="summary-value green" id="s-sold">—</div>
@@ -130,6 +131,10 @@
   <div class="summary-cell">
     <div class="summary-label">Spots</div>
     <div class="summary-value blue" id="s-spots">—</div>
+  </div>
+  <div class="summary-cell">
+    <div class="summary-label">Sold %</div>
+    <div class="summary-value purple" id="s-pct">—</div>
   </div>
 </div>
 
@@ -160,10 +165,14 @@
 <!-- ── SOLD ITEMS ── -->
 <div class="section-label" style="padding-top:8px">Sold Items</div>
 
-<div class="summary-grid cols-2">
+<div class="summary-grid cols-3">
   <div class="summary-cell">
     <div class="summary-label">Items</div>
     <div class="summary-value blue" id="si-count">—</div>
+  </div>
+  <div class="summary-cell">
+    <div class="summary-label">Pending</div>
+    <div class="summary-value amber" id="si-pending">—</div>
   </div>
   <div class="summary-cell">
     <div class="summary-label">Total</div>
@@ -176,7 +185,7 @@
   <button class="btn btn-danger" id="clearSoldBtn">✕ Clear</button>
 </div>
 
-<div class="status-line" id="status-sold">Scroll the Sold tab on the stream to capture items.</div>
+<div class="status-line" id="status-sold">Sold items are fetched automatically on Whatnot live pages.</div>
 
 <div class="table-wrap">
   <table>
