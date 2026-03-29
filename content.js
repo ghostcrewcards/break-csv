@@ -37,6 +37,17 @@ window.addEventListener("message", (event) => {
       chrome.storage.local.set({ whatnotSoldItems: Object.values(byId) });
     });
   }
+
+  if (data?.type === "WHATNOT_LIVESHOP_DATA") {
+    const incoming = data.items || [];
+    chrome.storage.local.get(["whatnotLiveShopItems"], res => {
+      const existing = res.whatnotLiveShopItems || [];
+      const byId = {};
+      for (const i of existing) if (i.itemId) byId[i.itemId] = i;
+      for (const i of incoming) if (i.itemId) byId[i.itemId] = i;
+      chrome.storage.local.set({ whatnotLiveShopItems: Object.values(byId) });
+    });
+  }
 });
 
 // === SPA navigation detection ===
@@ -45,7 +56,7 @@ const urlObserver = new MutationObserver(() => {
   if (location.href !== lastURL) {
     lastURL = location.href;
     console.log("[Whatnot CSV] Navigated to new show, clearing data");
-    chrome.storage.local.set({ whatnotRows: [], lastBreak: null, whatnotSoldItems: [] });
+    chrome.storage.local.set({ whatnotRows: [], lastBreak: null, whatnotSoldItems: [], whatnotLiveShopItems: [] });
     chrome.runtime.sendMessage({ type: "CLEAR_BADGE" });
   }
 });
@@ -57,7 +68,7 @@ function handleNav() {
   setTimeout(() => {
     if (location.href !== lastURL) {
       lastURL = location.href;
-      chrome.storage.local.set({ whatnotRows: [], lastBreak: null, whatnotSoldItems: [] });
+      chrome.storage.local.set({ whatnotRows: [], lastBreak: null, whatnotSoldItems: [], whatnotLiveShopItems: [] });
       chrome.runtime.sendMessage({ type: "CLEAR_BADGE" });
     }
   }, 200);

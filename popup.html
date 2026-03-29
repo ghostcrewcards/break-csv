@@ -157,6 +157,47 @@
 
 <hr class="section-divider"/>
 
+<!-- ── LIVE LISTINGS ── -->
+<div class="section-label" style="padding-top:8px">Live Listings</div>
+
+<div class="summary-grid cols-3">
+  <div class="summary-cell">
+    <div class="summary-label">Listings</div>
+    <div class="summary-value blue" id="bn-count">—</div>
+  </div>
+  <div class="summary-cell">
+    <div class="summary-label">Current Value</div>
+    <div class="summary-value green" id="bn-total">—</div>
+  </div>
+  <div class="summary-cell">
+    <div class="summary-label">Auctions</div>
+    <div class="summary-value amber" id="bn-auctions">—</div>
+  </div>
+</div>
+
+<div class="actions">
+  <button class="btn btn-primary" id="exportBuyNowBtn">↓ Export Listings</button>
+  <button class="btn btn-danger" id="clearBuyNowBtn">✕ Clear</button>
+</div>
+
+<div class="status-line" id="status-buynow">Open the stream's Shop tab to capture live listings.</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th class="num">Start $</th>
+        <th class="num">Cur $</th>
+        <th>Bidder/Buyer</th>
+      </tr>
+    </thead>
+    <tbody id="tbody-buynow"></tbody>
+  </table>
+</div>
+
+<hr class="section-divider"/>
+
 <!-- ── SOLD ITEMS ── -->
 <div class="section-label" style="padding-top:8px">Sold Items</div>
 

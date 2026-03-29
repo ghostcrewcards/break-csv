@@ -253,6 +253,7 @@
 
       const bodyText = typeof args[1]?.body === "string" ? args[1].body : null;
       const isLiveShopSold = bodyText?.includes("LiveShopSold");
+      const isLiveShopFeed = bodyText?.includes("LiveShopFeed");
 
       const clone = res.clone();
       clone.text().then(async (txt) => {
@@ -289,6 +290,56 @@
             if (items.length) {
               log(`🛒 LiveShopSold: ${items.length} items`);
               window.postMessage({ type: "WHATNOT_SOLD_DATA", items, liveId }, "*");
+            }
+            return;
+          }
+
+          // LiveShopFeed — active stream listings (auctions, buy-now, giveaways)
+          // Shape: data.liveShop.feed.objects.edges[].node
+          //   node.__typename === "FeedEntity"  → node.object is a ListingNode or GiveawayNode
+          //   node.__typename === "Section"      → header/category row, skip
+          if (isLiveShopFeed) {
+            const feedEdges = json?.data?.liveShop?.feed?.objects?.edges || [];
+            if (!feedEdges.length) return;
+            let liveId = null;
+            try { liveId = JSON.parse(bodyText)?.variables?.liveId; } catch (_) {}
+
+            const items = [];
+            for (const edge of feedEdges) {
+              const feedNode = edge?.node || {};
+              if (feedNode.__typename !== "FeedEntity") continue;
+              const listing = feedNode.object;
+              if (!listing || listing.__typename !== "ListingNode") continue;
+
+              const startCents = listing.price?.amount ?? 0;
+              const currency = listing.price?.currency || "USD";
+              const liveAuction = listing.liveAuctionInfo;
+              const currentCents = liveAuction?.currentPrice?.amount ?? startCents;
+              const bidCount = liveAuction?.bidCount ?? 0;
+              const currentBidder = liveAuction?.currentBidUser?.username || null;
+              const buyer = listing.order?.buyer?.username || null;
+              const isGiveaway = !!(listing.transactionProps?.giveaway);
+
+              items.push({
+                itemId: listing.id || null,
+                title: listing.title || "",
+                description: listing.description || "",
+                startingPriceCents: startCents,
+                currentPriceCents: currentCents,
+                currency,
+                quantity: listing.quantity ?? 1,
+                transactionType: listing.transactionType || "AUCTION",
+                listingStatus: listing.listingStatus || "ACTIVE",
+                bidCount,
+                currentBidder,
+                buyer,
+                isGiveaway
+              });
+            }
+
+            if (items.length) {
+              log(`🛍️ LiveShopFeed: ${items.length} listings`);
+              window.postMessage({ type: "WHATNOT_LIVESHOP_DATA", items, liveId }, "*");
             }
             return;
           }

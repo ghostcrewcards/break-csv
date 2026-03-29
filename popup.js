@@ -67,6 +67,66 @@ function renderBreaks(rows) {
   status.textContent = `${rows.length} spots · ${rows.filter(r => r.buyer).length} sold`;
 }
 
+// ── Render live listings (LiveShopFeed) ──
+function renderBuyNow(items) {
+  const tbody = document.getElementById("tbody-buynow");
+  const status = document.getElementById("status-buynow");
+  tbody.innerHTML = "";
+
+  if (!items?.length) {
+    status.textContent = "Open the stream's Shop tab to capture live listings.";
+    document.getElementById("bn-count").textContent = "—";
+    document.getElementById("bn-total").textContent = "—";
+    document.getElementById("bn-auctions").textContent = "—";
+    return;
+  }
+
+  let totalCurrent = 0, auctionCount = 0;
+  for (const item of items) {
+    totalCurrent += item.currentPriceCents || item.startingPriceCents || 0;
+    if (item.transactionType === "AUCTION") auctionCount++;
+
+    const tr = document.createElement("tr");
+
+    const tdTitle = document.createElement("td");
+    tdTitle.style.cssText = "max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+    tdTitle.title = item.title || "";
+    tdTitle.textContent = item.title || "—";
+
+    const tdStart = document.createElement("td");
+    tdStart.className = "num";
+    if (item.isGiveaway) {
+      tdStart.className += " price-free";
+      tdStart.textContent = "FREE";
+    } else {
+      tdStart.textContent = money(item.startingPriceCents);
+    }
+
+    const tdCur = document.createElement("td");
+    tdCur.className = "num";
+    tdCur.style.color = "#3fb950";
+    if (!item.isGiveaway) {
+      const hasBid = item.bidCount > 0;
+      tdCur.textContent = hasBid ? money(item.currentPriceCents) : "—";
+      if (hasBid) tdCur.title = `${item.bidCount} bid${item.bidCount !== 1 ? "s" : ""}`;
+    } else {
+      tdCur.textContent = "—";
+    }
+
+    const tdBidder = document.createElement("td");
+    tdBidder.style.cssText = "color:#8b949e;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+    tdBidder.textContent = item.buyer || item.currentBidder || "";
+
+    tr.append(tdTitle, tdStart, tdCur, tdBidder);
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById("bn-count").textContent = items.length;
+  document.getElementById("bn-total").textContent = money(totalCurrent);
+  document.getElementById("bn-auctions").textContent = auctionCount;
+  status.textContent = `${items.length} listings · ${auctionCount} auctions · ${money(totalCurrent)} current value`;
+}
+
 // ── Render sold items ──
 function renderSold(items) {
   const tbody = document.getElementById("tbody-sold");
@@ -113,8 +173,9 @@ function renderSold(items) {
 
 // ── Load all data ──
 function loadData() {
-  chrome.storage.local.get(["whatnotRows", "whatnotSoldItems"], res => {
+  chrome.storage.local.get(["whatnotRows", "whatnotSoldItems", "whatnotLiveShopItems"], res => {
     renderBreaks(res.whatnotRows || []);
+    renderBuyNow(res.whatnotLiveShopItems || []);
     renderSold(res.whatnotSoldItems || []);
   });
 }
@@ -202,6 +263,42 @@ document.getElementById("exportBreakBtn").addEventListener("click", () => {
     chrome.runtime.sendMessage({ type: "CLEAR_BADGE" });
     loadData();
   });
+});
+
+// ── Export live listings ──
+document.getElementById("exportBuyNowBtn").addEventListener("click", () => {
+  chrome.storage.local.get(["whatnotLiveShopItems"], res => {
+    const items = res.whatnotLiveShopItems || [];
+    if (!items.length) return alert("No live listing data to export.");
+
+    const lines = [["Title","Description","Starting Price","Current Price","Currency","Quantity","Transaction Type","Status","Bid Count","Current Bidder","Buyer","Giveaway"].join(",")];
+    for (const item of items) {
+      lines.push([
+        item.title, item.description,
+        ((item.startingPriceCents || 0) / 100).toFixed(2),
+        ((item.currentPriceCents || 0) / 100).toFixed(2),
+        item.currency || "USD",
+        item.quantity ?? 1,
+        item.transactionType || "",
+        item.listingStatus || "",
+        item.bidCount ?? 0,
+        item.currentBidder || "",
+        item.buyer || "",
+        item.isGiveaway ? "Yes" : "No"
+      ].map(v => `"${(String(v || "")).replace(/"/g, '""')}"`).join(","));
+    }
+
+    const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+    chrome.downloads.download({ url: URL.createObjectURL(blob), filename: `whatnot_listings_${Date.now()}.csv`, saveAs: true });
+    chrome.storage.local.set({ whatnotLiveShopItems: [] });
+    loadData();
+  });
+});
+
+// ── Clear live listings ──
+document.getElementById("clearBuyNowBtn").addEventListener("click", () => {
+  chrome.storage.local.set({ whatnotLiveShopItems: [] });
+  loadData();
 });
 
 // ── Export sold items ──
