@@ -8,10 +8,10 @@ A free Chrome extension to capture break spot data, tally the full break cost (s
 
 ## Supported Platforms
 
-| Platform | Break spots | Sold items tab | Discount / giveaway display |
-|---|---|---|---|
-| Whatnot | ✅ | ✅ | — |
-| Fanatics Live | ✅ | — | ✅ |
+| Platform | Break spots | Live listings | Sold items tab | Discount / giveaway display |
+|---|---|---|---|---|
+| Whatnot | ✅ | ✅ | ✅ | — |
+| Fanatics Live | ✅ | — | — | ✅ |
 
 ---
 
@@ -22,8 +22,9 @@ A free Chrome extension to capture break spot data, tally the full break cost (s
 1. Open any Whatnot livestream with an active break
 2. Click **"Buy Spots"** to open the break spot list
 3. Slowly scroll through **all** spots — sold and available — so the extension can capture them
-4. *(Optional)* Click the **Sold** tab on the stream and scroll through it to capture sold items separately
-5. Click the extension icon in your toolbar to view and export
+4. *(Optional)* Open the stream's **Shop** tab to capture live listings (auctions, buy-now, giveaways)
+5. *(Optional)* Click the **Sold** tab on the stream and scroll through it to capture sold items separately
+6. Click the extension icon in your toolbar to view and export
 
 ### Fanatics Live
 
@@ -35,7 +36,7 @@ A free Chrome extension to capture break spot data, tally the full break cost (s
 
 ## The Popup
 
-Click the extension icon to open the popup. You'll see two sections:
+Click the extension icon to open the popup. You'll see three sections:
 
 **Breaks** — shows all captured break spots with:
 - Platform badge (`WN` = Whatnot, `FL` = Fanatics Live)
@@ -43,6 +44,8 @@ Click the extension icon to open the popup. You'll see two sections:
 - Price (with strikethrough original price when discounted; "FREE" for giveaway spots)
 - Status (Sold / Available)
 - Buyer username
+
+**Live Listings** *(Whatnot only)* — shows active stream listings captured from the Shop tab with starting price, current bid, bid count, and current bidder/buyer. Covers auctions, buy-now items, and giveaways.
 
 **Sold Items** *(Whatnot only)* — shows individual sold items from the Sold tab with unit price, quantity, and buyer.
 
@@ -59,6 +62,12 @@ Each section has its own **Export** and **Clear** button. Exporting clears that 
 - Price, currency, status (Sold / Available), buyer username
 - Summary totals (total sold, total available, grand total)
 
+**↓ Export Listings** includes:
+- Item title and description
+- Starting price, current price, currency, quantity
+- Transaction type (AUCTION / BUY_NOW), listing status
+- Bid count, current bidder, buyer, giveaway flag
+
 **↓ Export Sold** includes:
 - Item title and description
 - Unit price and total price, quantity, buyer username, transaction type
@@ -68,7 +77,7 @@ Each section has its own **Export** and **Clear** button. Exporting clears that 
 
 ## Manual Install
 
-1. **[Download the latest ZIP](https://github.com/ghostcrewcards/break-csv/releases/latest/download/break-csv-v1.2.0.zip)**
+1. **[Download the latest ZIP](https://github.com/ghostcrewcards/break-csv/raw/master/break-csv-v1.2.0.zip)**
 2. Unzip it anywhere on your computer
 3. Open Chrome and go to `chrome://extensions`
 4. Enable **Developer mode** (toggle in the top right)
@@ -95,6 +104,9 @@ On Whatnot, make sure you've clicked "Buy Spots" to open the break panel and scr
 **I only see some of the spots.**
 Scroll through the full list in the break panel (Whatnot) to load all spots. The extension captures data as it appears in the page.
 
+**The live listings section is empty.**
+Open the stream's Shop tab on Whatnot — browsing it triggers the GraphQL request that the extension captures.
+
 **The sold items section is empty.**
 The Sold Items section is Whatnot-only. Click the Sold tab on the Whatnot stream and scroll through it — that's what loads the data.
 
@@ -107,6 +119,12 @@ No — it captures live GraphQL traffic, so it only works on active streams.
 ---
 
 ## Changelog
+
+**v1.3.0**
+- New **Live Listings** section captures the Whatnot stream Shop tab (auctions, buy-now, giveaways)
+- Shows starting price, current bid, bid count, and current bidder per listing
+- Export to CSV with 12 fields including transaction type, status, and giveaway flag
+- Data clears automatically on stream navigation
 
 **v1.2.0**
 - Added Fanatics Live support
