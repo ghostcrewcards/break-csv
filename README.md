@@ -77,7 +77,7 @@ Each section has its own **Export** and **Clear** button. Exporting clears that 
 
 ## Manual Install
 
-1. **[Download the latest ZIP](https://github.com/ghostcrewcards/break-csv/raw/master/break-csv-v1.2.0.zip)**
+1. **[Download the latest ZIP](https://github.com/ghostcrewcards/break-csv/raw/master/break-csv-v1.3.0.zip)**
 2. Unzip it anywhere on your computer
 3. Open Chrome and go to `chrome://extensions`
 4. Enable **Developer mode** (toggle in the top right)
